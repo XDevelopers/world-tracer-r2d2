@@ -1,0 +1,13 @@
+{
+    "wtr": {
+        "url": "",
+        "iosUrl": "",
+        "body": {
+            "userId": "",
+            "companyId": "AC",
+            "password": "Testing@11"
+        }
+    },
+    "requestTimeOut": 60,
+    "intervalToAuthenticate": 60000
+}
