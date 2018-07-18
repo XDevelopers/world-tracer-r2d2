@@ -1,0 +1,150 @@
+<!-- views/pages/index.ejs -->
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <% include ../partials/head %>
+</head>
+
+<body class="container">
+    <!-- Header -->
+    <header>
+        <% include ../partials/header %>
+    </header>
+    <!-- End Header -->
+
+    <!-- Main -->
+    <main>
+        <div class="jumbotron hide">
+            <h2>Welcome to Authentication Test Process</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="dateRange">Date Range</label>
+                    <input type="text" class="form-control" id="dateRange" name="dateRange" />
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="form-control btn btn-primary">Submit</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <tr>
+                            <th>Date Range</th>
+                            <th>Status</th>
+                            <th>Request Count</th>
+                            <th>Total Hours Waiting</th>
+                        </tr>
+                        <tr>
+                            <td><span class="dateRange"></span></td>
+                            <td><span class="status"></span></td>
+                            <td><span class="requestCount"></span></td>
+                            <td><span class="totalHours"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>        
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <canvas id="canvas"></canvas>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <textarea class="form-control log" rows="10" style="resize:none;"></textarea>
+                </div>
+            </div>
+        </div>
+        <br />
+    </main>
+    <!-- End Main -->
+
+    <!-- Footer -->
+    <footer>
+        <% include ../partials/footer %>
+    </footer>
+    <!-- End Footer -->
+
+    <% include ../partials/chartScripts %>
+    <script type="text/javascript">
+        //moment.locale("pt-br");
+        $(function(){
+            let $dateRange = $('input[name="dateRange"]');
+            let $table = $(".table");
+            let $log = $(".log");
+            // Hide Table before click
+            $table.hide();
+            $log.hide();
+
+            $dateRange.daterangepicker({}, function(start, end, label) {
+                console.log('New date range selected: ' + start.format('YYYY-MM-DD') + ' to ' + end.format('YYYY-MM-DD'));
+            });
+
+            // When user click to send the date range
+            $(".btn-primary").on("click", () => {
+                if($dateRange.val()){
+                    // Show Table
+                    $table.show();
+                    $log.show();
+
+                    // Fill some fields
+                    $(".dateRange").html($dateRange.val());
+                    $(".status").html("failed");
+                    var dates = $dateRange.val().split(" - ");
+                    if (dates.length > 1){
+                        getRecords(dates[0], dates[1]);
+                    }
+                }
+            });
+        });
+
+        var getRecords = (startDate, endDate) => {
+            new Promise((resolve, reject) => {
+                if(startDate && endDate) {
+                    var url = document.location.origin + "/find/";
+                    url += moment(new Date(startDate)).format('YYYY-MM-DD') + "/";
+                    url += moment(new Date(endDate)).format('YYYY-MM-DD') + "/failed";
+
+                    $.get(url, function(data, status){
+                        console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
+                        if(data){
+                            var requests = data.length;
+                            $(".requestCount").html(requests);
+                            // (requests * 5) / 60
+                            var hours = (requests * 5) / 60;
+                            $(".totalHours").html(hours.toFixed(2) + " hrs");
+                            
+                            var logs = "---------- Requests ---------- \n\n";
+                            for(var i = 0; i < data.length; i++){
+                                logs += "Date:   " + data[i].creationDate + "\n";
+                                logs += "Status: " + data[i].status + "\n";
+                                logs += "Body:   " + JSON.stringify(data[i].responseBody) + "\n";
+                                logs += "----------------\n";
+                            }
+                            logs += "\n-------- End Log --------";
+
+                            // Print the Logs
+                            //$(".log").val(JSON.stringify(data, null, 2));
+                            $(".log").val(logs);
+                        }
+                    });
+                }
+            });
+        };
+        
+	</script>
+
+</body>
+
+</html>

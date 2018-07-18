@@ -1,0 +1,26 @@
+{
+    "name": "world-tracer-r2d2",
+    "version": "1.0.0",
+    "description": "Host to test the Authentication process by sita.aero",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Marcio Lourenço - m.lourenco@cinq.com.br",
+    "license": "ISC",
+    "dependencies": {
+        "body-parser": "^1.18.3",
+        "chart.js": "^2.7.2",
+        "config": "^1.30.0",
+        "ejs": "^2.6.1",
+        "express": "^4.16.3",
+        "lokijs": "^1.5.5",
+        "moment": "^2.22.2",
+        "request": "^2.87.0"
+    },
+    "devDependencies": {
+        "grunt": "^1.0.2",
+        "grunt-contrib-copy": "^1.0.0"
+    }
+}

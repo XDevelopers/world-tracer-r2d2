@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="Description"     content="Give users the chance to cancel the location change after clicking a link" />
+    <title>WorldTracer R2D2</title>
+    <!-- Bootstrap - Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!-- Bootstrap - Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        function makeLinkCancellable(link) {   
+            link.onclick = function(e) {
+                var timeout, timer = 3;
+                var updateTimer = function() {
+                    if (timer == 0) {
+                        link.onclick = null;
+                        link.innerHTML = 'Here we go ...';
+                        // Call function to Authentication Request Test
+                        authenticateRequest();
+
+                        //window.location.href = link.href;
+                    } else {
+                        link.innerHTML = 'Click again to cancel. Remaining time: ' + (timer--) + ' seconds';
+                        timeout = setTimeout(updateTimer, 1000);
+                    }
+                };
+                var linkText = link.innerHTML;
+                link.onclick = function() {
+                    clearTimeout(timeout);
+                    link.innerHTML = linkText;
+                    makeLinkCancellable(link);
+                    return false;
+                };
+                updateTimer();
+                return false;
+            };
+        }
+
+        window.onload = function() {   
+            var i, links = document.getElementsByTagName('a');   
+            for (i = 0; i < links.length; i++) {    
+                makeLinkCancellable(links[i]);   
+            }  
+        };
+
+        function authenticateRequest() {
+            var settings = {
+                "async": true,
+                "crossDomain": true,
+                "url": "http://10.10.2.10:7431/baggage/wtr/wtrtablet/v1.0/login/auth",
+                "method": "POST",
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
+                    "Access-Control-Allow-Headers": "Origin, Content-Type, X-Auth-Token",
+                    "Content-Type": "application/json",
+                    "Accept-Encoding": "application/json",
+                    "Cache-Control": "no-cache",
+                    "Content-Encoding": "gzip"
+                },
+                "processData": false,
+                "data": JSON.stringify({
+                    "userId": "ANAND",
+                    "companyId": "AC",
+                    "password": "Testing@11"
+                })
+            };
+
+            $.ajax(settings)
+                .done(function(response) {
+                    console.log(response);
+                });
+        }
+    </script>
+
+</head>
+
+<body>
+
+    <h1>WorldTracer Authentication Test</h1>
+    <p>
+        Clicking on the links will start a countdown. If you fail to click again before it has reached 0, you will be taken to the link URL.
+    </p>
+    <ul>
+        <li><a href="http://10.10.2.10:7431/baggage/wtr/wtrtablet/v1.0/login/auth">URL for Windows APP </a></li>
+
+        <li><a href="https://tablet-qa.worldtracer.aero/baggage/wtr/wtrtablet/v1.0/login/auth">URL for iOS APP</a></li>
+    </ul>
+    <div id="content">
+
+    </div>
+</body>
+
+</html>
