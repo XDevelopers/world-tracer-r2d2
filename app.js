@@ -3,16 +3,22 @@
 -- App to simulate the request and response related to Login Endpoint
 -----------------------------------------------------------------------------------------------------------
 */
+require("dotenv").config();
 var request = require("request");
+var http = require("http");
+var https = require("https");
+var querystring = require("querystring");
 var express = require("express");
 var path = require("path");
 var config = require("config");
 var loki = require("lokijs");
 var moment = require("moment");
+var fs = require("fs");
 moment.locale("pt-br");
 // Define app
 var app = express();
 app.use('/scripts', express.static(__dirname + "/node_modules/"));
+app.use('/images', express.static(__dirname + "/images/"));
 
 
 //-----------------------------------------------------------------------------------------------------------
@@ -65,7 +71,45 @@ var loadCollection = function(collectionName, callback) {
 };
 //-----------------------------------------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------------------------------------
+// Options to execute the Post to WorldTracer
+//-----------------------------------------------------------------------------------------------------------
+var agentOptions;
+var agent;
 
+agentOptions = {
+    host: 'tablet-qa.worldtracer.aero',
+    port: '443',
+    path: '/',
+    rejectUnauthorized: false
+};
+
+agent = new https.Agent(agentOptions);
+var wtrConfig = config.get("wtr");
+var options = {
+    method: 'POST',
+    url: wtrConfig.url, // TODO: via campo
+    headers: {
+        "Cache-Control": "no-cache",
+        "Accept-Encoding": "application/json",
+        "Content-Type": "application/json",
+        "accept": "*/*",
+        "host": "tablet-qa.worldtracer.aero"
+    },
+    body: {
+        userId: wtrConfig.body.userId,
+        companyId: wtrConfig.body.companyId,
+        password: wtrConfig.body.password
+    },
+    json: true,
+    agent: agent,
+    agentOptions: {
+        rejectUnauthorized: false
+    },
+    strictSSL: false,
+    rejectUnauthorized: false,
+    withCredentials: false
+};
 //-----------------------------------------------------------------------------------------------------------
 // Request - POST to Authentication endpoint from SITA
 //-----------------------------------------------------------------------------------------------------------
@@ -156,7 +200,7 @@ var getRecords = function(startDate, endDate, status) {
                     })
                     .simplesort("creationDate")
                     .data();
-                console.log("Found: %s", result);
+                console.log("Found: %s", JSON.stringify(result));
 
                 resolve(result);
             });
@@ -182,7 +226,6 @@ app.get('/', function(req, res) {
 app.get('/about', function(req, res) {
     res.render('pages/about');
 });
-
 
 //-----------------------------------------------------------------------------------------------------------
 // Find by startDate and endDate and status
@@ -210,29 +253,74 @@ app.get('/find/:startDate/:endDate/:status', function(req, res) {
         });
 });
 
+//-----------------------------------------------------------------------------------------------------------
+// endpoint
+//-----------------------------------------------------------------------------------------------------------
+app.get("/api/test", (req, res) => {
 
-//-----------------------------------------------------------------------------------------------------------
-// Options to execute the Post to WorldTracer
-//-----------------------------------------------------------------------------------------------------------
-var wtrConfig = config.get("wtr");
-var options = {
-    method: 'POST',
-    url: wtrConfig.url, // TODO: via campo
-    headers: {
-        'Postman-Token': '99f77660-ecd1-450a-bd71-8f7b2dc943b0',
-        'Cache-Control': 'no-cache',
-        'Accept-Encoding': 'application/json',
-        'Content-Type': 'application/json'
-    },
-    body: {
+    console.error("URL: %s", wtrConfig.url);
+    // request(options, (error, response, body) => {
+    //     if (error) {
+    //         // Error ! :(
+    //         console.error("Error: %s", error);
+    //     } else {
+    //         console.log("Response: %s", response);
+
+    //         console.log("Body Status: %s", body.status);
+    //     }
+
+    //     res.setHeader('Content-Type', 'application/json');
+    //     res.status(200).json({
+    //         error: error,
+    //         response: response,
+    //         body: body
+    //     });
+    // });
+
+    // form data
+    var postData = querystring.stringify({
         userId: wtrConfig.body.userId,
         companyId: wtrConfig.body.companyId,
         password: wtrConfig.body.password
-    },
-    json: true
-};
+    });
 
+    var optionsHttps = {
+        hostname: "tablet-qa.worldtracer.aero",
+        port: 443,
+        path: "/",
+        method: "POST",
+        rejectUnauthorized: false,
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Content-Length": postData.length
+        } //,
+        //cert: fs.readFileSync(__dirname + "/worldtracer-qa.dlh.de.pem")
+    };
+    // request object
+    var req = https.request(optionsHttps, function(res) {
+        var result = '';
 
+        res.on('data', function(chunk) {
+            result += chunk;
+        });
+        res.on('end', function() {
+            console.log(result);
+        });
+        res.on('error', function(err) {
+            console.log(err);
+        });
+    });
+
+    // req error
+    req.on('error', function(err) {
+        console.log(err);
+    });
+
+    //send request witht the postData form
+    req.write(postData);
+    req.end();
+    //worldtracer-qa.dlh.de
+});
 
 
 //-----------------------------------------------------------------------------------------------------------
@@ -243,6 +331,9 @@ var server = app.listen(7000, function() {
     host = (host === '::' ? 'localhost' : host);
     var port = server.address().port;
 
-    console.log('listening at http://%s:%s', host, port);
-    console.log('The magic it\'s happening');
+    console.log("NODE_TLS_REJECT_UNAUTHORIZED: %s", process.env.NODE_TLS_REJECT_UNAUTHORIZED);
+    console.log("NODE_TLS_ACCEPT_UNTRUSTED_CERTIFICATES_THIS_IS_INSECURE: %s", process.env.NODE_TLS_ACCEPT_UNTRUSTED_CERTIFICATES_THIS_IS_INSECURE);
+
+    console.log("listening at http://%s:%s", host, port);
+    console.log("The magic it\'s happening");
 });

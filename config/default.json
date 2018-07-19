@@ -1,9 +1,10 @@
 {
     "wtr": {
-        "url": "",
-        "iosUrl": "",
+        "url": "https://tablet-qa.worldtracer.aero/baggage/wtr/wtrtablet/v1.0/login/auth",
+        "iosUrl": "https://tablet-qa.worldtracer.aero/baggage/wtr/wtrtablet/v1.0/login/auth",
+        "winUrl": "http://10.10.2.10:7431/baggage/wtr/wtrtablet/v1.0/login/auth",
         "body": {
-            "userId": "",
+            "userId": "ANAND",
             "companyId": "AC",
             "password": "Testing@11"
         }
