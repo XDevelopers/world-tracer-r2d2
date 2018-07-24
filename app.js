@@ -61,7 +61,7 @@ var loadCollection = function(collectionName, callback) {
         if (!_collection) {
             console.log("Collection %s does not exit. Creating ...", collectionName);
             _collection = db.addCollection(collectionName, {
-                unique: ["status", "creationDate"]
+                indices: ["status", "creationDate"]
             });
         }
 
@@ -78,7 +78,7 @@ var agentOptions;
 var agent;
 
 agentOptions = {
-    host: 'tablet-qa.worldtracer.aero',
+    host: 'tablet.worldtracer.aero',
     port: '443',
     path: '/',
     rejectUnauthorized: false
@@ -94,7 +94,7 @@ var options = {
         "Accept-Encoding": "application/json",
         "Content-Type": "application/json",
         "accept": "*/*",
-        "host": "tablet-qa.worldtracer.aero"
+        "host": "tablet.worldtracer.aero"
     },
     body: {
         userId: wtrConfig.body.userId,
@@ -118,7 +118,14 @@ var failCounter = 0;
 
 var intervalToAuthenticate = parseInt(config.get("intervalToAuthenticate"));
 var requestLoop = setInterval(() => {
+    if (!checkStartProcess && !checkEndProcess) {
+        console.log("Não é Hora de Fazer os requests ainda!...");
+        return;
+    }
+
     request(options, (error, response, body) => {
+        console.error("Request to: %s", options.url);
+        //nodeRequest();
         if (error) {
             // Error ! :(
             console.error("Error: %s", error);
@@ -145,9 +152,57 @@ var requestLoop = setInterval(() => {
             }
         }
     });
+
+
     // Interval
 }, intervalToAuthenticate);
 
+var checkStartProcess = () => {
+    var d = new Date();
+
+    // Start DateTime at 08:00 AM
+    var startDateTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 08, 00, 00, 00);
+    var startLocalTime = startDateTime.getHours();
+    var currentDateTime = d.getHours();
+
+    return (currentDateTime >= startLocalTime);
+};
+
+var checkEndProcess = () => {
+    var d = new Date();
+
+    // End DateTime at 18:00 PM
+    var endDateTime = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 18, 00, 00, 00);
+    var endLocalTime = endDateTime.getHours();
+    var currentDateTime = d.getHours();
+
+    return (currentDateTime <= endLocalTime);
+};
+
+var nodeRequest = () => {
+    console.log("nodeRequest");
+    var nodeOptions = {
+        method: 'POST',
+        url: 'https://tablet.worldtracer.aero/baggage/wtr/wtrtablet/v1.0/login/auth',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Accept-Encoding': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: { userId: '', companyId: '', password: '' },
+        json: true
+    };
+
+    request(nodeOptions, function(error, response, body) {
+        if (error) {
+            // Error ! :(
+            console.error("Error: %s", new Error(error));
+        }
+
+        console.log(body);
+    });
+
+};
 //-----------------------------------------------------------------------------------------------------------
 // Function to save the response related to authenticate endpoint
 //-----------------------------------------------------------------------------------------------------------
@@ -331,9 +386,9 @@ var server = app.listen(7000, function() {
     host = (host === '::' ? 'localhost' : host);
     var port = server.address().port;
 
-    console.log("NODE_TLS_REJECT_UNAUTHORIZED: %s", process.env.NODE_TLS_REJECT_UNAUTHORIZED);
-    console.log("NODE_TLS_ACCEPT_UNTRUSTED_CERTIFICATES_THIS_IS_INSECURE: %s", process.env.NODE_TLS_ACCEPT_UNTRUSTED_CERTIFICATES_THIS_IS_INSECURE);
+    //console.log("NODE_TLS_REJECT_UNAUTHORIZED: %s", process.env.NODE_TLS_REJECT_UNAUTHORIZED);
 
     console.log("listening at http://%s:%s", host, port);
+    console.log("Date: %s", new Date());
     console.log("The magic it\'s happening");
 });
