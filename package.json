@@ -5,7 +5,10 @@
     "main": "app.js",
     "scripts": {
         "start": "node app.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "tape ./test/*.test.js | tap-spec",
+        "tst": "tape ./test/*.test.js",
+        "spec": "tape ./test/*.test.js | tap-spec",
+        "coverage": "istanbul cover tape ./test/*.test.js && istanbul check-coverage --statements 100 --functions 100 --lines 100 --branches 100"
     },
     "author": "Marcio Lourenço - m.lourenco@cinq.com.br",
     "license": "ISC",
@@ -18,10 +21,15 @@
         "express": "^4.16.3",
         "lokijs": "^1.5.5",
         "moment": "^2.22.2",
-        "request": "^2.87.0"
+        "morgan": "^1.9.0",
+        "request": "^2.87.0",
+        "sinon": "^6.1.4"
     },
     "devDependencies": {
         "grunt": "^1.0.2",
-        "grunt-contrib-copy": "^1.0.0"
+        "grunt-contrib-copy": "^1.0.0",
+        "istanbul": "^0.4.5",
+        "tap-spec": "^5.0.0",
+        "tape": "^4.9.1"
     }
 }

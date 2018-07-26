@@ -7,6 +7,12 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Run tests",
+            "program": "${workspaceRoot}/node_modules/.bin/tape"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}\\app.js"
         }
